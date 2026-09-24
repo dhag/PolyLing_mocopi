@@ -4,6 +4,7 @@
 // 受信スレッドから InitializeSkeleton / UpdateSkeleton を呼ぶ：MocopiSimpleReceiver.cs:147-148）。
 // 「接続」中は、背景のアバターの姿勢からマッスルを取り出して PolyLing のライブ受信へ WebSocket で送る
 // （MocopiAvatar は Update で姿勢を当てるので、LateUpdate で読む）。録画とは独立。
+// 「待ち受ける」を選ぶと、自分が WebSocket で待ち受け、つないできた全接続へ同じものを送る。
 
 using System.IO;
 using System.Net;
@@ -32,11 +33,21 @@ namespace MocopiToPolyLing
         [Tooltip("PolyLing（ライブ受信）のポート")]
         public int polyLingPort = 12361;
 
+        [Tooltip("true: 自分が待ち受ける／false: PolyLing へ接続する")]
+        public bool listenMode = false;
+
+        [Tooltip("待ち受けのポート")]
+        public int listenPort = 12361;
+
+        [Tooltip("待ち受け時に LAN 上の別の PC からも受ける")]
+        public bool listenLan = false;
+
         /// <summary>mocopi の受信がこの秒数途切れたら送信を止める（再開すれば送る）。</summary>
         private const float SendIdleTimeout = 0.5f;
 
         private string _portText;
         private string _polyLingPortText;
+        private string _listenPortText;
         private readonly MocopiMuscleSender _sender = new MocopiMuscleSender();
         private long  _lastAccepted = -1;
         private float _lastAcceptedChange = -1f;
@@ -46,12 +57,13 @@ namespace MocopiToPolyLing
         private string _baseDir;
 
         private GUIStyle _label, _field, _button;
-        private Rect _window = new Rect(10, 10, 560, 360);
+        private Rect _window = new Rect(10, 10, 560, 400);
 
         private void Awake()
         {
             _portText = port.ToString();
             _polyLingPortText = polyLingPort.ToString();
+            _listenPortText = listenPort.ToString();
             _baseDir = Path.Combine(Application.persistentDataPath, "MocopiClips");
             _receiver.SkeletonDefinition += _recorder.OnSkeletonDefinition;
             _receiver.FrameData += _recorder.OnFrame;
@@ -70,7 +82,7 @@ namespace MocopiToPolyLing
 
         private void LateUpdate()
         {
-            if (_sender.State != SenderState.Connected) return;
+            if (!_sender.CanSend) return;
 
             // mocopi から新しいデータが来ているあいだだけ送る
             long accepted = _receiver.AcceptedPackets;
@@ -99,10 +111,25 @@ namespace MocopiToPolyLing
                 : _sender.LastError;
         }
 
+        private void StartListen()
+        {
+            if (!int.TryParse(_listenPortText.Trim(), out int p))
+            {
+                _message = "待ち受けのポート番号が正しくありません。";
+                return;
+            }
+            listenPort = p;
+            var animator = avatar != null ? avatar.GetComponent<Animator>() : null;
+            _message = _sender.Listen(animator, p, listenLan)
+                ? $"待ち受けを始めました（{_sender.Destination}）"
+                : _sender.LastError;
+        }
+
         private string SenderStateText()
         {
             switch (_sender.State)
             {
+                case SenderState.Listening:  return $"待ち受け中（接続 {_sender.ClientCount}）";
                 case SenderState.Connected:  return "接続中";
                 case SenderState.Connecting: return "接続しています…";
                 default:                     return _sender.IsActive ? "未接続" : "切断";
@@ -111,8 +138,9 @@ namespace MocopiToPolyLing
 
         private void DisconnectPolyLing()
         {
+            bool wasListening = _sender.IsListening;
             _sender.Disconnect();
-            _message = "PolyLing への送信を止めました";
+            _message = wasListening ? "待ち受けを止めました" : "PolyLing への送信を止めました";
         }
 
         private void ForwardFrameToAvatar(int frameId, float timestamp, double unixTime, int[] ids,
@@ -212,15 +240,31 @@ namespace MocopiToPolyLing
             bool sending = _sender.IsActive;
             GUI.enabled = !sending;
             GUILayout.BeginHorizontal();
-            GUILayout.Label("PolyLing IP", _label, GUILayout.Width(120));
-            polyLingIp = GUILayout.TextField(polyLingIp, _field, GUILayout.Width(220));
-            GUILayout.Label("ポート", _label, GUILayout.Width(60));
-            _polyLingPortText = GUILayout.TextField(_polyLingPortText, _field, GUILayout.Width(90));
+            if (GUILayout.Toggle(!listenMode, "PolyLing へ接続する", _label)) listenMode = false;
+            if (GUILayout.Toggle(listenMode, "待ち受ける", _label)) listenMode = true;
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("接続", _button)) ConnectPolyLing();
+            if (listenMode)
+            {
+                GUILayout.Label("待ち受けポート", _label, GUILayout.Width(150));
+                _listenPortText = GUILayout.TextField(_listenPortText, _field, GUILayout.Width(90));
+                listenLan = GUILayout.Toggle(listenLan, "LAN から受ける", _label);
+            }
+            else
+            {
+                GUILayout.Label("PolyLing IP", _label, GUILayout.Width(120));
+                polyLingIp = GUILayout.TextField(polyLingIp, _field, GUILayout.Width(220));
+                GUILayout.Label("ポート", _label, GUILayout.Width(60));
+                _polyLingPortText = GUILayout.TextField(_polyLingPortText, _field, GUILayout.Width(90));
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(listenMode ? "待ち受け開始" : "接続", _button))
+            {
+                if (listenMode) StartListen(); else ConnectPolyLing();
+            }
             GUI.enabled = sending;
-            if (GUILayout.Button("切断", _button)) DisconnectPolyLing();
+            if (GUILayout.Button(listenMode ? "待ち受け停止" : "切断", _button)) DisconnectPolyLing();
             GUI.enabled = true;
             GUILayout.EndHorizontal();
 
@@ -241,8 +285,8 @@ namespace MocopiToPolyLing
                 $"状態: {st}   受信: {(_receiver.IsRunning ? "中" : "停止")}   骨定義: {(_recorder.HasSkeleton ? "あり" : "なし")}\n" +
                 $"最後の送信元: {_receiver.LastSender}   受理 {_receiver.AcceptedPackets} / 除外 {_receiver.RejectedPackets}\n" +
                 $"記録: {_recorder.FrameCount} フレーム, {_recorder.Duration:F2} 秒\n" +
-                $"PolyLing: {SenderStateText()} {_sender.Destination}   送信 {_sender.SentCount} / 見送り {_sender.SkippedCount}" +
-                (string.IsNullOrEmpty(_sender.LastError) ? "" : "\nPolyLing: " + _sender.LastError),
+                $"送信: {SenderStateText()} {_sender.Destination}   送信 {_sender.SentCount} / 見送り {_sender.SkippedCount}" +
+                (string.IsNullOrEmpty(_sender.LastError) ? "" : "\n送信: " + _sender.LastError),
                 _label);
             if (!string.IsNullOrEmpty(_message)) GUILayout.Label(_message, _label);
 
