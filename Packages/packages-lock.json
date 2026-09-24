@@ -7,7 +7,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
-      "hash": "787d9317376ad64bde5b80a569666d41efd0bc19"
+      "hash": "2c66868c609848b3f012a71af465bd093e609b32"
     },
     "com.haglib.polyling": {
       "version": "https://github.com/dhag/com.haglib.PolyLing.git",

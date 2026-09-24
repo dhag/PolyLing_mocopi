@@ -4,7 +4,7 @@
 // 受信スレッドから InitializeSkeleton / UpdateSkeleton を呼ぶ：MocopiSimpleReceiver.cs:147-148）。
 // 「接続」中は、背景のアバターの姿勢からマッスルを取り出して PolyLing のライブ受信へ WebSocket で送る
 // （MocopiAvatar は Update で姿勢を当てるので、LateUpdate で読む）。録画とは独立。
-// 「待ち受ける」を選ぶと、自分が WebSocket で待ち受け、つないできた全接続へ同じものを送る。
+// 「サーバモード」をオンにすると、自分が WebSocket で待ち受け、つないできた全接続へ同じものを送る。
 
 using System.IO;
 using System.Net;
@@ -33,8 +33,8 @@ namespace MocopiToPolyLing
         [Tooltip("PolyLing（ライブ受信）のポート")]
         public int polyLingPort = 12361;
 
-        [Tooltip("true: 自分が待ち受ける／false: PolyLing へ接続する")]
-        public bool listenMode = false;
+        [Tooltip("サーバモード（オン: 自分が待ち受ける／オフ: PolyLing へ接続する）")]
+        public bool serverMode = false;
 
         [Tooltip("待ち受けのポート")]
         public int listenPort = 12361;
@@ -56,7 +56,7 @@ namespace MocopiToPolyLing
         private string _message = "";
         private string _baseDir;
 
-        private GUIStyle _label, _field, _button;
+        private GUIStyle _label, _field, _button, _toggle;
         private Rect _window = new Rect(10, 10, 560, 400);
 
         private void Awake()
@@ -208,6 +208,7 @@ namespace MocopiToPolyLing
             _label = new GUIStyle(GUI.skin.label) { fontSize = 18, wordWrap = true };
             _field = new GUIStyle(GUI.skin.textField) { fontSize = 18 };
             _button = new GUIStyle(GUI.skin.button) { fontSize = 20, fixedHeight = 40 };
+            _toggle = new GUIStyle(GUI.skin.toggle) { fontSize = 18 };
         }
 
         private void OnGUI()
@@ -239,16 +240,13 @@ namespace MocopiToPolyLing
 
             bool sending = _sender.IsActive;
             GUI.enabled = !sending;
+            serverMode = GUILayout.Toggle(serverMode, "サーバモード", _toggle);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(!listenMode, "PolyLing へ接続する", _label)) listenMode = false;
-            if (GUILayout.Toggle(listenMode, "待ち受ける", _label)) listenMode = true;
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            if (listenMode)
+            if (serverMode)
             {
                 GUILayout.Label("待ち受けポート", _label, GUILayout.Width(150));
                 _listenPortText = GUILayout.TextField(_listenPortText, _field, GUILayout.Width(90));
-                listenLan = GUILayout.Toggle(listenLan, "LAN から受ける", _label);
+                listenLan = GUILayout.Toggle(listenLan, "LAN から受ける", _toggle);
             }
             else
             {
@@ -259,12 +257,12 @@ namespace MocopiToPolyLing
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(listenMode ? "待ち受け開始" : "接続", _button))
+            if (GUILayout.Button(serverMode ? "待ち受け開始" : "接続", _button))
             {
-                if (listenMode) StartListen(); else ConnectPolyLing();
+                if (serverMode) StartListen(); else ConnectPolyLing();
             }
             GUI.enabled = sending;
-            if (GUILayout.Button(listenMode ? "待ち受け停止" : "切断", _button)) DisconnectPolyLing();
+            if (GUILayout.Button(serverMode ? "待ち受け停止" : "切断", _button)) DisconnectPolyLing();
             GUI.enabled = true;
             GUILayout.EndHorizontal();
 
