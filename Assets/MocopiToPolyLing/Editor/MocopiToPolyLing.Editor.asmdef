@@ -1,0 +1,19 @@
+{
+    "name": "MocopiToPolyLing.Editor",
+    "rootNamespace": "MocopiToPolyLing",
+    "references": [
+        "MocopiToPolyLing",
+        "com.sony.mocopi.receiver"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

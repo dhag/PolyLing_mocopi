@@ -1,0 +1,24 @@
+{
+    "name": "MocopiToPolyLing",
+    "rootNamespace": "MocopiToPolyLing",
+    "references": [
+        "com.sony.mocopi.receiver",
+        "PolyLing.Runtime",
+        "HagLib.NET.Duplex.Runtime"
+    ],
+    "includePlatforms": [
+        "Android",
+        "Editor",
+        "iOS",
+        "macOSStandalone",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
