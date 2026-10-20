@@ -1,6 +1,6 @@
 // MocopiMuscleSender.cs
 // 背景のアバター（Humanoid）の姿勢からマッスルを取り出し、WebSocket で送る。
-// JSON の形は PolyLing 側の Poly_Ling.Motion.MotionLiveJson（同じクラスで組み立てる）。
+// JSON の形は PolyLing 側の Poly_Ling.Motion.MotionLiveJson（同じクラスで組み立てる）。source は "mocopi"。
 // 通信は com.haglib.net_duplexchannel（PolyLing の待ち受けと同じ部品・同じ封筒）。
 //
 // ■ 送り方は 2 通り
@@ -250,6 +250,7 @@ namespace MocopiToPolyLing
                 }
             }
 
+            _frame.Source = MotionLiveJson.SourceMocopi;
             _seq = 0;
             _sent = 0;
             _skipped = 0;

@@ -195,9 +195,9 @@ namespace MocopiToPolyLing
                 _message = "保存先ファイル名が空です。記録は破棄しました。";
                 return;
             }
-            MocopiClipBuilder.ResolvePaths(fileName, _baseDir, out string motionPath, out string csvPath);
-            var r = MocopiClipBuilder.Save(skel, frames, motionPath, csvPath);
-            _message = r.Ok ? $"{r.Message}\n{r.MotionPath}\n{r.RestCsvPath}" : r.Message;
+            string motionPath = MocopiClipBuilder.ResolvePath(fileName, _baseDir);
+            var r = MocopiClipBuilder.Save(skel, frames, motionPath);
+            _message = r.Ok ? $"{r.Message}\n{r.MotionPath}" : r.Message;
         }
 
         // ---------------- 画面 ----------------
