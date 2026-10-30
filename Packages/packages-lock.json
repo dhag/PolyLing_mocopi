@@ -1,22 +1,20 @@
 {
   "dependencies": {
     "com.haglib.net_duplexchannel": {
-      "version": "https://github.com/dhag/com.haglib.net_duplexchannel.git",
+      "version": "file:D:/UNITY保存の品/TEO3.0開発中/PolyLing/Packages/com.haglib.net_duplexchannel",
       "depth": 0,
-      "source": "git",
+      "source": "local",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
-      },
-      "hash": "2c66868c609848b3f012a71af465bd093e609b32"
+      }
     },
     "com.haglib.polyling": {
-      "version": "https://github.com/dhag/com.haglib.PolyLing.git",
+      "version": "file:D:/UNITY保存の品/TEO3.0開発中/PolyLing/Packages/com.haglib.polyling",
       "depth": 0,
-      "source": "git",
+      "source": "local",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
-      },
-      "hash": "937f6bdd041aa14df217b5053a435add07c81886"
+      }
     },
     "com.unity.ai.navigation": {
       "version": "2.0.11",

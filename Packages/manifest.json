@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.haglib.net_duplexchannel": "https://github.com/dhag/com.haglib.net_duplexchannel.git",
-    "com.haglib.polyling": "https://github.com/dhag/com.haglib.PolyLing.git",
+    "com.haglib.net_duplexchannel": "file:D:/UNITY保存の品/TEO3.0開発中/PolyLing/Packages/com.haglib.net_duplexchannel",
+    "com.haglib.polyling": "file:D:/UNITY保存の品/TEO3.0開発中/PolyLing/Packages/com.haglib.polyling",
     "com.unity.ai.navigation": "2.0.11",
     "com.unity.collab-proxy": "2.11.4",
     "com.unity.ide.rider": "3.0.39",
